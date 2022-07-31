@@ -4,33 +4,51 @@ author: "nombres"
 output: html_document
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(presentes)
+
+#Cargamos la base de victimas_accionar_represivo_ilegal
+victimas <- presentes::victimas_accionar_represivo_ilegal
+
+
 # Cargar los paquetes necesarios acá
 ```
 
-
 ## Introducción
 
+Los datos son recopilados de el paquete "*presentes*" que pone a disposición información oficial sobre víctimas del terrorismo de estado. El paquete fue desarrollado por **Diego Kozlowski, Demian Zayat, H. Antonio Vazquez Brust.** Las variables que tiene en cuenta son:
 
+tablita con variable y que significa
+
+La fuente de datos que alimenta este paquete es del [registro unificado del listado de Víctimas del accionar represivo ilegal del Estado argentino entre 1966 y 1983](http://datos.jus.gob.ar/dataset/registro-unificado-de-victimas-del-terrorismo-de-estado-ruvte), del [Informe de Investigación RUVTE-ILID](https://www.argentina.gob.ar/derechoshumanos/ANM/ruvte/informe) y la [base de datos del parque de la memoria](http://basededatos.parquedelamemoria.org.ar/registros/)
+
+```{r}
+
+names(victimas)
+```
+
+Esta sección consiste en entre 2 y 3 párrafos describiendo los datos. Qué decir sobre los datos dependerá de los datos elegidos pero algunos detalles posibles son:
+
+-   ¿Qué datos son?
+-   ¿De dónde provienen? ¿Quién los tomó?
+-   ¿En qué período se tomaron?
+
+En general, cualquier detalle que crean relevante para que alguien sin acceso a los datos se haga una buena idea de los mismos.
+
+Esta sección no necesita tener código de R.
 
 ## Exploración de los datos
-
 
 ```{r}
 # Código para cargar o leer los datos
 ```
-
-
 
 ```{r}
 # Cödigo de R acá 
 # Agregá más bloques según sea necesario
 ```
 
-
-
 ## Hipótesis
-
-
