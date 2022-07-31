@@ -8,7 +8,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
-library(presentes)
 
 #Cargamos la base de victimas_accionar_represivo_ilegal
 victimas <- presentes::victimas_accionar_represivo_ilegal
@@ -42,7 +41,112 @@ Esta sección no necesita tener código de R.
 
 ## Exploración de los datos
 
+Esta sección es una primera exploracion de los datos.
+
+¿Qué variables tiene?
+
 ```{r}
+
+#Resumen de variables 
+summary(victimas)
+
+
+#vemos si hay datos faltantes 
+DataExplorer::plot_missing(victimas, ggtheme = theme_bw())
+
+
+```
+
+¿Cuántas observaciones hay?
+
+```{r}
+
+victimas%>%
+  summarise(n())
+```
+
+¿Cuántas variables? 21
+
+```{r}
+
+
+```
+
+Seleccioná algunas variables resulten interesantes y mostrá sus propiedades.
+
+Algunas cosas para mostrar:
+
+\- ¿Cuál es su valor medio y desvío estándard?
+
+```{r}
+names(victimas)
+
+
+victimas_x_anio <- victimas %>% 
+  select_if(is.numeric) %>%
+  group_by(anio_denuncia)%>%
+  summarise(N = n())%>%
+  arrange(desc(N))
+
+
+victimas_x_anio
+
+
+edad <- victimas %>%
+  summarise(media = mean(edad_al_momento_del_hecho_numerico,na.rm = TRUE),
+            mediana = median(edad_al_momento_del_hecho_numerico,na.rm = TRUE),
+            desvio = sd(edad_al_momento_del_hecho_numerico,na.rm = TRUE))
+
+#valor maximo y valor minimo
+
+quantile(victimas$edad_al_momento_del_hecho_numerico, na.rm = TRUE) 
+
+
+
+
+#library(esquisse)
+
+#esquisser(victimas)
+
+
+
+
+
+```
+
+\- ¿Cuál es su rango (valor máximo y valor mínimo)?
+
+\- ¿Hay alguna anomalía que sugiera que hay datos incorrectos? Valores imposibles (como valores negativos en una variable que sólo puede ser positiva) o poco creíbles.
+
+\- ¿Cuántas observaciones hay por cada grupo? ¿Cuántos valores faltantes? ¿Hay diferencias?
+
+```{r}
+
+
+unique(victimas$pais_nacimiento_indec_id)
+
+victimasxpais <- victimas %>%
+  group_by(pais_nacimiento)%>%
+  summarise(N=n())
+
+#posible grafico los que son argentinos y los que no 
+unique(victimas$embarazo)
+
+victimasxprovincia <- victimas %>%
+  group_by(provincia_nacimiento)%>%
+  summarise(N=n())%>%
+  arrange(desc(N))
+
+embarazada <- victimas %>%
+  group_by(embarazo)%>%
+  summarise(N=n())%>%
+  arrange(desc(N))
+
+tipo <- victimas %>%
+  group_by(tipificacion_ruvte)%>%
+  summarise(N=n())%>%
+  arrange(desc(N))
+
 # Código para cargar o leer los datos
 ```
 
