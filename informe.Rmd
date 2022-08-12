@@ -1,6 +1,6 @@
 ---
-title: "titulo"
-author: "nombres"
+title: "Análisis de la base Victimas del Accionar Represivo Ilegal"
+author: "Leonardo Paoli - Ariana Bardauil"
 output: html_document
 ---
 
@@ -8,6 +8,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
+
+library(ggplot2)
 
 #Cargamos la base de victimas_accionar_represivo_ilegal
 victimas <- presentes::victimas_accionar_represivo_ilegal
@@ -18,38 +20,70 @@ victimas <- presentes::victimas_accionar_represivo_ilegal
 
 ## Introducción
 
-Los datos son recopilados de el paquete "*presentes*" que pone a disposición información oficial sobre víctimas del terrorismo de estado. El paquete fue desarrollado por **Diego Kozlowski, Demian Zayat, H. Antonio Vazquez Brust.** Las variables que tiene en cuenta son:
+Las personas desaparecidas por el terrorismo de Estado en Argentina son víctimas del crimen de desaparición forzada antes, durante y después de la última dictadura cívico-militar que hubo en Argentina, autodenominada Proceso de Reorganización Nacional, entre 1976 y 1983. Encerradas en centros clandestinos de detención, eran sometidas a torturas y en muchos casos asesinadas. Las primeras desapariciones y los primeros centros clandestinos de detención se instalaron en 1975, durante el gobierno constitucional de María Estela Martínez de Perón, y continuaron hasta 1984, durante el gobierno constitucional de Raúl Alfonsín.
 
-tablita con variable y que significa
+Los datos son recopilados en el paquete "*presentes*" pone a disposición información oficial sobre las víctimas del terrorismo de estado. El paquete fue desarrollado por **Diego Kozlowski, Demian Zayat, H. Antonio Vazquez Brust.** Las variables que tiene en cuenta son:
 
 La fuente de datos que alimenta este paquete es del [registro unificado del listado de Víctimas del accionar represivo ilegal del Estado argentino entre 1966 y 1983](http://datos.jus.gob.ar/dataset/registro-unificado-de-victimas-del-terrorismo-de-estado-ruvte), del [Informe de Investigación RUVTE-ILID](https://www.argentina.gob.ar/derechoshumanos/ANM/ruvte/informe) y la [base de datos del parque de la memoria](http://basededatos.parquedelamemoria.org.ar/registros/)
 
-```{r}
-
-names(victimas)
-```
-
-Esta sección consiste en entre 2 y 3 párrafos describiendo los datos. Qué decir sobre los datos dependerá de los datos elegidos pero algunos detalles posibles son:
-
--   ¿Qué datos son?
--   ¿De dónde provienen? ¿Quién los tomó?
--   ¿En qué período se tomaron?
-
-En general, cualquier detalle que crean relevante para que alguien sin acceso a los datos se haga una buena idea de los mismos.
-
-Esta sección no necesita tener código de R.
+En nuestro caso utilizaremos el dataset de **victimas_accionar_represivo_ilegal** que contiene el listado de víctimas con denuncia formal del **Registro Unificado de Víctimas del Terrorismo de Estado (RUVTE).** Esta base, incluye 8753 registros al día de la fecha, con datos sobre el año de la denuncia, la tipificación del RUVTE, datos personales, edad al momento del hecho, fecha de la detención o asesinato, lugar de la detención o secuestro, lugar de hallazgo de los restos, provincia y país de nacimiento, y si tiene fotografía, entre otros.
 
 ## Exploración de los datos
 
-Esta sección es una primera exploracion de los datos.
-
-¿Qué variables tiene?
+Observamos las variables que contiene nuestra base de datos
 
 ```{r}
 
+victimas %>% 
+  glimpse() 
+
+
+```
+
+Las variables son:
+
+| Variable                              | Descripción                                                    |
+|----------------------------|--------------------------------------------|
+| id_unico_ruvte                        | Id del Registro Unificado de Víctimas del Terrorismo de Estado |
+| anio_denuncia                         | Año de la denuncia                                             |
+| tipificacion_ruvte                    | Si fue asesinato o desaparición                                |
+| apellido_paterno_nombres              | Apellido paterno                                               |
+| apellido_materno                      | Apellido Materno                                               |
+| apellido_casada                       | Apellido de Casada                                             |
+| edad_al_momento_del_hecho             | Edad al momento del hecho                                      |
+| documentos                            | DNI o Libreta Cívica                                           |
+| anio_nacimiento                       | Año de nacimiento                                              |
+| provincia_nacimiento                  | Provincia de Nacimiento                                        |
+| pais_nacimiento                       | Pais de nacimiento                                             |
+| nacionalidad                          | Nacionalidad                                                   |
+| embarazo                              | ¿Estaba embarazada?                                            |
+| fecha_detencion_secuestro             | Fecha de detención/secuestro                                   |
+| lugar_detencion_secuestro             | Lugar de detención/secuestro                                   |
+| fecha_asesinato_o\_hallazgo_de_restos | Fecha de asesinato o fecha de hallazgo de restos               |
+| lugar_asesinato_o\_hallazgo_de_restos | Lugar de asesinato o lugar de hallazgo de restos               |
+| fotografia                            | ¿Hay fotografía?                                               |
+| provincia_nacimiento_indec_id         | Provincia de nacimiento según INDEC                            |
+| pais_nacimiento_indec_id              | Pais de Nacimiento según INDEC                                 |
+
+```{r}
+
+#Pasamos a factor las posibles variables de clasificacion
+victimas <- victimas %>%
+  mutate(anio_denuncia = as.factor(anio_denuncia),
+         anio_nacimiento = as.factor(anio_nacimiento),
+         provincia_nacimiento = as.factor(provincia_nacimiento),
+         embarazo = as.factor(embarazo),
+         pais_nacimiento = as.factor(pais_nacimiento),
+         fotografia =as.factor(fotografia)
+         )
+
 #Resumen de variables 
 summary(victimas)
+```
 
+En primer lugar se puede observar que hay 8.753 observaciones y 21 variables. Las variable anio_denuncia y anio_nacimiento se encuentran como numéricas por lo que se decide pasarlas a tipo factor. Los datos muestran, como primera apreciación, que hubo más victimas nacidas en Buenos Aires, Capital y Córdoba que en otras provincias. No se encuentra registros separados por género, por lo que no podemos calcular la proporción de embarazadas. La mayoría de las personas desaparecidas son oriundas de nuestro país. Sin embargo, existen casos de desaparecidos extranjeros, en su mayoría de paises limitrofes. La mayor parte de las victimas poseen fotografía. Al mismo tiempo, se observa una gran cantidad de datos faltantes:
+
+```{r}
 
 #vemos si hay datos faltantes 
 DataExplorer::plot_missing(victimas, ggtheme = theme_bw())
@@ -57,102 +91,122 @@ DataExplorer::plot_missing(victimas, ggtheme = theme_bw())
 
 ```
 
-¿Cuántas observaciones hay?
+Se observa que las variables con más cantidad de datos faltantes son aquellas relacionadas con el lugar o fecha del asesinato.
 
-```{r}
+```{r echo=TRUE}
 
-victimas%>%
-  summarise(n())
-```
-
-¿Cuántas variables? 21
-
-```{r}
-
-
-```
-
-Seleccioná algunas variables resulten interesantes y mostrá sus propiedades.
-
-Algunas cosas para mostrar:
-
-\- ¿Cuál es su valor medio y desvío estándard?
-
-```{r}
-names(victimas)
-
+#analisis de las victimas por año
 
 victimas_x_anio <- victimas %>% 
-  select_if(is.numeric) %>%
   group_by(anio_denuncia)%>%
   summarise(N = n())%>%
-  arrange(desc(N))
+  arrange(desc(anio_denuncia))
 
 
-victimas_x_anio
 
 
+#Graficamos
+ggplot(victimas_x_anio) +
+ aes(x = factor(anio_denuncia), y = N) +
+ geom_col(fill = "#00B9FF") +
+ labs(x = " ",
+      y = " ", 
+      title = "Victimas por año de denuncia de la desaparición") +
+ coord_flip() +
+ theme_classic() +
+  theme(axis.text = element_text(size =4, color ="black"))
+```
+
+Se observa que la mayoría de las denuncias efectuadas fue en el año 1984
+
+
+
+```{r}
 edad <- victimas %>%
   summarise(media = mean(edad_al_momento_del_hecho_numerico,na.rm = TRUE),
             mediana = median(edad_al_momento_del_hecho_numerico,na.rm = TRUE),
             desvio = sd(edad_al_momento_del_hecho_numerico,na.rm = TRUE))
 
-#valor maximo y valor minimo
-
-quantile(victimas$edad_al_momento_del_hecho_numerico, na.rm = TRUE) 
-
-
-
-
-#library(esquisse)
-
-#esquisser(victimas)
-
-
-
-
+edad
 
 ```
 
-\- ¿Cuál es su rango (valor máximo y valor mínimo)?
+La mediana de edad de las personas desaparecidas en la última dictadura es de 26 años y el promedio es de 28 años, con un desvío de 9.54 años. La amplitud de edad va de cero años a 81 como se ve más abajo
 
-\- ¿Hay alguna anomalía que sugiera que hay datos incorrectos? Valores imposibles (como valores negativos en una variable que sólo puede ser positiva) o poco creíbles.
+```{r}
+#valor maximo y valor minimo
 
-\- ¿Cuántas observaciones hay por cada grupo? ¿Cuántos valores faltantes? ¿Hay diferencias?
+quantile(victimas$edad_al_momento_del_hecho_numerico, na.rm = TRUE) 
+```
+
+
+### Algunos Análisis
 
 ```{r}
 
-
-unique(victimas$pais_nacimiento_indec_id)
-
+#Armamos la base
 victimasxpais <- victimas %>%
   group_by(pais_nacimiento)%>%
-  summarise(N=n())
+  summarise(N=n())%>%
+  arrange(desc(N))
 
-#posible grafico los que son argentinos y los que no 
-unique(victimas$embarazo)
 
+victimasxpais
+
+victimas <- victimas %>%
+  mutate(pais_arg = if_else(pais_nacimiento == 'ARGENTINA',true = 'ARGENTINA', false = if_else(pais_nacimiento %in% c('URUGUAY','PARAGUAY','CHILE','PERU','BOLIVIA','BRASIL','COLOMBIA','CUBA','VENEZUELA','MEXICO','GUATEMALA'),true = "LATINOAMERICA",false = 'OTROS'))) 
+
+
+victimasargs <- victimas%>%
+  group_by(pais_arg)%>%
+  summarise(N = n())
+
+#Graficamos
+ggplot(victimasargs) +
+ aes(x = factor(pais_arg), y = N) +
+ geom_col(fill = "pink") +
+ labs(x = " ",
+      y = " ", 
+      title = "Victimas por nacionalidad") +
+ theme_classic() 
+
+#ARGENTINA LATINOAMERICA OTROS
+```
+Como se adelantó más arriba, se observa que la mayoría de las victimas fueron de nacionalidad argentina, con gran preponderancia de los paises limitrofes y NAs. 
+
+
+```{r}
+
+#Victimas por provincia
 victimasxprovincia <- victimas %>%
   group_by(provincia_nacimiento)%>%
   summarise(N=n())%>%
   arrange(desc(N))
 
-embarazada <- victimas %>%
-  group_by(embarazo)%>%
-  summarise(N=n())%>%
-  arrange(desc(N))
+victimasxprovincia
 
-tipo <- victimas %>%
-  group_by(tipificacion_ruvte)%>%
-  summarise(N=n())%>%
-  arrange(desc(N))
 
-# Código para cargar o leer los datos
 ```
+Se observa que hay mayor frecuencia de desaparecidos oriundos de Buenos Aires y Capital Federal
 
 ```{r}
-# Cödigo de R acá 
-# Agregá más bloques según sea necesario
+
+
+tipo <- victimas %>%
+  group_by(tipificacion_ruvte, embarazo)%>%
+  summarise(N=n())%>%
+  arrange(desc(N))
+
+tipo
 ```
 
+
+Las categorías de la variable "tipificacion" no son posibles de realizar filtros dado que es necesario limpiar la base. No obstante, resulta interesante para futuros trabajos
+
+
 ## Hipótesis
+
+1) Existe mayor cantidad de desapariciones en la ciudad de buenos aires y provincia de buenos aires porque son los Estados que poseen mayor población
+
+2) Las mujeres embarazadas sufrieron más desapariciones forzadas que asesinatos
+
