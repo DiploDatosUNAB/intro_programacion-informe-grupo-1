@@ -8,13 +8,14 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
-
+library(stringr)
 library(ggplot2)
+library(readxl)
 
 #Cargamos la base de victimas_accionar_represivo_ilegal
 victimas <- presentes::victimas_accionar_represivo_ilegal
 
-
+centros <- presentes::centros_clandestinos_detencion
 # Cargar los paquetes necesarios acá
 ```
 
@@ -67,6 +68,21 @@ Las variables son:
 
 ```{r}
 
+
+
+names(victimas)
+
+
+
+
+#creamos la variable "año desaparición
+#Separamos la columna
+# se uso una libreria de strings y no de fechas debido a que 
+# la columna no se encontraba limpia 
+
+anio <- str_split_fixed(victimas$fecha_detencion_secuestro, "/",3)
+anio <-anio[,3]
+
 #Pasamos a factor las posibles variables de clasificacion
 victimas <- victimas %>%
   mutate(anio_denuncia = as.factor(anio_denuncia),
@@ -74,11 +90,17 @@ victimas <- victimas %>%
          provincia_nacimiento = as.factor(provincia_nacimiento),
          embarazo = as.factor(embarazo),
          pais_nacimiento = as.factor(pais_nacimiento),
-         fotografia =as.factor(fotografia)
+         fotografia =as.factor(fotografia),
+         anio_desaparicion = as.factor(anio) #agrego la variable creada mas arriba
          )
 
+unique(victimas$fecha_detencion_secuestro)
 #Resumen de variables 
 summary(victimas)
+
+table(victimas$anio_desaparicion)
+
+unique(victimas$anio_desaparicion)
 ```
 
 En primer lugar se puede observar que hay 8.753 observaciones y 21 variables. Las variable anio_denuncia y anio_nacimiento se encuentran como numéricas por lo que se decide pasarlas a tipo factor. Los datos muestran, como primera apreciación, que hubo más victimas nacidas en Buenos Aires, Capital y Córdoba que en otras provincias. No se encuentra registros separados por género, por lo que no podemos calcular la proporción de embarazadas. La mayoría de las personas desaparecidas son oriundas de nuestro país. Sin embargo, existen casos de desaparecidos extranjeros, en su mayoría de paises limitrofes. La mayor parte de las victimas poseen fotografía. Al mismo tiempo, se observa una gran cantidad de datos faltantes:
@@ -119,8 +141,6 @@ ggplot(victimas_x_anio) +
 
 Se observa que la mayoría de las denuncias efectuadas fue en el año 1984
 
-
-
 ```{r}
 edad <- victimas %>%
   summarise(media = mean(edad_al_momento_del_hecho_numerico,na.rm = TRUE),
@@ -138,7 +158,6 @@ La mediana de edad de las personas desaparecidas en la última dictadura es de 2
 
 quantile(victimas$edad_al_momento_del_hecho_numerico, na.rm = TRUE) 
 ```
-
 
 ### Algunos Análisis
 
@@ -172,8 +191,8 @@ ggplot(victimasargs) +
 
 #ARGENTINA LATINOAMERICA OTROS
 ```
-Como se adelantó más arriba, se observa que la mayoría de las victimas fueron de nacionalidad argentina, con gran preponderancia de los paises limitrofes y NAs. 
 
+Como se adelantó más arriba, se observa que la mayoría de las victimas fueron de nacionalidad argentina, con gran preponderancia de los paises limitrofes y NAs.
 
 ```{r}
 
@@ -187,6 +206,7 @@ victimasxprovincia
 
 
 ```
+
 Se observa que hay mayor frecuencia de desaparecidos oriundos de Buenos Aires y Capital Federal
 
 ```{r}
@@ -200,13 +220,42 @@ tipo <- victimas %>%
 tipo
 ```
 
-
 Las categorías de la variable "tipificacion" no son posibles de realizar filtros dado que es necesario limpiar la base. No obstante, resulta interesante para futuros trabajos
-
 
 ## Hipótesis
 
-1) Existe mayor cantidad de desapariciones en la ciudad de buenos aires y provincia de buenos aires porque son los Estados que poseen mayor población
+1)  Existe mayor cantidad de desapariciones en la ciudad de buenos aires y provincia de buenos aires porque son los Estados que poseen mayor población
 
-2) Las mujeres embarazadas sufrieron más desapariciones forzadas que asesinatos
+-   Se utilizará para realizar este analisis el Censo de 1980. La fuente de datos es el Instituto Nacional de Estadisticas y Censos ([INDEC](https://www.indec.gob.ar/indec/web/Nivel4-Tema-2-41-164))
 
+```{r}
+
+censo_1980 <- read_excel("censo_1980.xlsx")
+censo_1980$Provincia <- toupper(censo_1980$Provincia)
+
+unique(victimas$provincia_nacimiento)
+
+frecuencia_provincia <- victimas %>% 
+  group_by(provincia_nacimiento) %>% 
+  summarise(N = n()) %>% 
+  rename(Provincia = provincia_nacimiento)
+#agregar la cantidad de centros de detencion por provincia 
+
+#consolidamos las bases
+
+freq_prov_cons <- merge(x = frecuencia_provincia, y = censo_1980, by = "Provincia")
+
+#proporcion de victimas por sobre la poblacion
+
+freq_prov_cons <- freq_prov_cons %>% 
+  mutate(porcentaje_pob_des = round(((N/Poblacion)*100),3))%>%
+  arrange(desc(porcentaje_pob_des))
+
+###falta graficar
+```
+
+Hay 575 NA en provincia
+
+389 "sin datos"
+
+datos resguardados 53
